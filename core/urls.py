@@ -23,5 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('schema-viewer/', include('schema_viewer.urls')),
     path('', views.home, name='home'),
+    path('accounts/', include('accounts.urls')),
 
 ]

@@ -27,18 +27,41 @@
                     <a href="#contact" class="text-slate-300 hover:text-indigo-400 font-medium transition-colors duration-200">Contact</a>
                 </nav>
 
-                <div class="hidden lg:flex space-x-3">
-                    <a href="#" class="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors duration-200 cursor-pointer">
-                        Sign In
-                    </a>
-                    <a href="#" class="px-5 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors duration-200 shadow-lg cursor-pointer">
-                        Get Started
-                    </a>
-                </div>
+                
+                {% if request.user.is_autenticathed %}
 
-                <button class="lg:hidden text-slate-300 hover:text-white">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
+                    <div class="hidden lg:flex space-x-3">
+                        <a href="{% url 'login' %}" class="px-4 py-2 text-slate-300 hover:text-white font-medium transition-colors duration-200 cursor-pointer">
+                            Sign In
+                        </a>
+                        <a href="{% url 'register' %}" class="px-5 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors duration-200 shadow-lg cursor-pointer">
+                            Get Started
+                        </a>
+                    </div>
+
+                {% else %}                
+                    {% if request.user.is_mentor == True %}
+
+                        <div class="hidden lg:flex space-x-3">
+                            <a href="#TODO: dashboard_mentor" class="px-5 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors duration-200 shadow-lg cursor-pointer">
+                                Go to your Dashboard Mentor
+                            </a>
+                        </div>
+
+
+
+                    {% else %} 
+                        <div class="hidden lg:flex space-x-3">
+                            <a href="#TODO: dashboard_mentee" class="px-5 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors duration-200 shadow-lg cursor-pointer">
+                                Go to your Dashboard Mentee
+                            </a>
+                        </div>
+                        
+                    {% endif %}
+                    
+                {% endif %}
+                    
+                
             </div>
         </nav>
     {% endblock navbar %}

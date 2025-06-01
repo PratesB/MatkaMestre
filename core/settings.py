@@ -1,6 +1,6 @@
 from pathlib import Path
 from decouple import config, Csv
-
+from django.contrib.messages import constants
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,7 +30,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'schema_viewer',
+    'accounts',
 ]
+
+
+
+# AUTH USER MODEL
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+
+
+
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -119,3 +131,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# DJANGO MESSAGE
+MESSAGE_TAGS = {
+    constants.ERROR:'red',
+    constants.SUCCESS:'green',
+}
