@@ -139,3 +139,10 @@ MESSAGE_TAGS = {
     constants.ERROR:'red',
     constants.SUCCESS:'green',
 }
+
+
+
+# EMAIL SETUP # TODO switch to real email setup and update .env file
+EMAIL_BACKEND = config('EMAIL_BACKEND')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+SERVER_EMAIL = config('SERVER_EMAIL')

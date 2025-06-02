@@ -5,7 +5,12 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as login_django, logout as logout_django
 from django.contrib.auth.decorators import login_required
-
+from uuid import uuid4
+from django.utils import timezone
+from datetime import timedelta
+from django.core.mail import send_mail
+from django.conf import settings
+from django.urls import reverse
 
 
 
@@ -86,8 +91,14 @@ def login(request):
 
         if user:
             login_django(request, user)
-            return HttpResponse('dashboard_mentor')
-            # TODO: return redirect('dashboard_mentor')
+
+            if user.is_mentor:
+                return HttpResponse('dashboard_mentor')
+                # TODO: return redirect('dashboard_mentor')
+            else:
+                return HttpResponse('dashboard_mentee')
+                # TODO: return redirect('dashboard_mentee')
+
 
         else:
             messages.error(request, 'Email or password invalid.')
@@ -100,3 +111,74 @@ def login(request):
 def logout(request):
     logout_django(request)
     return redirect('home')
+
+
+
+
+
+@require_http_methods(['GET','POST'])
+def invite_mentee(request):
+    if not request.user.is_authenticated or not request.user.is_mentor:
+        messages.error(request, 'Only mentor can invite mentee.')
+        return HttpResponse('Only mentor can invite mentee.')
+        #TODO: return redirect('login')
+        
+
+    if request.method == 'POST':
+        mentee_email = request.POST.get('mentee_email')
+
+        if CustomUser.objects.filter(email=mentee_email).exists():
+            messages.error(request, 'This mentee mail is already used.')
+            return HttpResponse('This mentee mail is already used.')
+            # TODO: return render(request, 'invite_mentee.html')
+
+
+        
+        if InvitationToken.objects.filter(mentee_email=mentee_email, is_used = False, expires_at__gt=timezone.now()).exists():
+            messages.error(request, f'There is already an active invitation for this email: {mentee_email}.')
+            return render(request, 'invite_mentee.html')
+
+
+        token = str(uuid4())
+
+        try:
+            InvitationToken.objects.create(
+                token = token,
+                mentee_email = mentee_email,
+                mentor = request.user,
+                expires_at = timezone.now() + timedelta(hours=24),
+
+            )
+
+            invite_url = request.build_absolute_uri(f'/accounts/register-mentee/?token={token}')
+
+
+            send_mail(
+                subject='Invite to join MatkaMestre',
+                message=f'Hello!\n\n You have been invited by {request.user.email} to join MatkaMestre as a mentee. Use this link to register:{invite_url}\n\nImportant: this invite link is valid for 24 hours.\n\nKind regards,\n\nMatkaMestre Team.',
+
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[mentee_email],
+                fail_silently=False,
+            )
+
+
+            messages.success(request, f'Invitation sent successfully to:{mentee_email}')
+            return HttpResponse(f'Invitation sent successfully to:{mentee_email}')
+            # TODO: return redirect('dashboard_mentee')
+
+        except Exception as e:
+            messages.error(request, f'An error occurred while sending the invitation: {e}')
+            return HttpResponse(f'An error occurred while sending the invitation: {e}')
+            # TODO: return redirect('invite_mentee')
+
+
+    return render(request, 'invite_mentee.html')
+        
+
+
+
+
+
+
+
