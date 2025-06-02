@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+
+
+{% block body %} 
+<div class="bg-slate-950 min-h-screen">
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Your Mentees</h1>
+                    <p class="mt-2 text-sm text-slate-400">Manage and track your mentoring relationships</p>
+                </div>
+                <a href="{% url 'invite_mentee' %}" class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-950">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add Mentee
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-slate-400">Total Mentees</p>
+                        <p class="text-2xl font-semibold text-white">{{total_mentees}}</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Table Section -->
+        <div class="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-800">
+                <h3 class="text-lg font-semibold text-white">Mentee List</h3>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-800/50">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                                Mentee
+                            </th>
+                            <th scope="col" class="hidden sm:table-cell px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                                Stage
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="hidden md:table-cell px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                                Date Joined
+                            </th>
+                            <th scope="col" class="hidden lg:table-cell px-6 py-4 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                                Email
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+
+                        {% if my_mentees %}
+
+                            {% for mentee in my_mentees %}
+
+                            <tr class="hover:bg-slate-800/30 transition-colors duration-200">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <div class="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center">
+                                                <img src="#" alt="" class="size-8 rounded-full bg-gray-800">
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-white">{{ mentee.user.username }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600">
+                                        {{ mentee.get_stage_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 w-2 h-2 bg-emerald-400 rounded-full"></div>
+                                        <span class="ml-2 text-sm text-white">Active</span>
+                                    </div>
+                                </td>
+                                <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                                    {{ mentee.user.date_joined|date:"d/m/Y" }}
+                                </td>
+                                <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                                    {{ mentee.user.email }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex items-center justify-end space-x-2">
+                                        <button class="text-slate-400 hover:text-blue-700 transition-colors duration-200 p-1 rounded cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+
+                                        <button class="text-slate-400 hover:text-red-600 transition-colors duration-200 p-1 rounded cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                            {% else %}
+            
+                            <tr class="h-48">
+                                <td colspan="6" class="text-center py-12">
+                                    <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    <h3 class="mt-2 text-sm font-medium text-slate-300">No mentees yet</h3>
+                                    <p class="mt-1 text-sm text-slate-500">Get started by adding your first mentee using the button above.</p>
+                                </td>
+                            </tr>
+
+                        {% endif %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %} 

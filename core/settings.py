@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'schema_viewer',
     'accounts',
+    'mentor',
 ]
 
 
