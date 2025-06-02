@@ -120,17 +120,16 @@ def logout(request):
 def invite_mentee(request):
     if not request.user.is_authenticated or not request.user.is_mentor:
         messages.error(request, 'Only mentor can invite mentee.')
-        return HttpResponse('Only mentor can invite mentee.')
-        #TODO: return redirect('login')
+        return redirect('login')
         
 
     if request.method == 'POST':
         mentee_email = request.POST.get('mentee_email')
 
+
         if CustomUser.objects.filter(email=mentee_email).exists():
             messages.error(request, 'This mentee mail is already used.')
-            return HttpResponse('This mentee mail is already used.')
-            # TODO: return render(request, 'invite_mentee.html')
+            return render(request, 'invite_mentee.html')
 
 
         
@@ -150,7 +149,7 @@ def invite_mentee(request):
 
             )
 
-            invite_url = request.build_absolute_uri(f'/accounts/register-mentee/?token={token}')
+            invite_url = request.build_absolute_uri(f'/accounts/register_mentee/?token={token}')
 
 
             send_mail(
@@ -168,9 +167,8 @@ def invite_mentee(request):
             # TODO: return redirect('dashboard_mentee')
 
         except Exception as e:
-            messages.error(request, f'An error occurred while sending the invitation: {e}')
-            return HttpResponse(f'An error occurred while sending the invitation: {e}')
-            # TODO: return redirect('invite_mentee')
+            messages.error(request, f'An error occurred while sending the invitation. Please try again later.')
+            return redirect('invite_mentee')
 
 
     return render(request, 'invite_mentee.html')
@@ -180,5 +178,100 @@ def invite_mentee(request):
 
 
 
+@require_http_methods(['GET','POST'])
+def register_mentee(request):
+
+    token = request.GET.get('token') if request.method=='GET' else request.POST.get('token')
 
 
+    if not token:
+        messages.error(request, 'Invitation token is invalid or missing.')
+        return render(request, 'register_mentee.html')
+    
+
+    try:
+        invitation = InvitationToken.objects.get(token=token)
+        if invitation.is_used or invitation.expires_at < timezone.now():
+            messages.error(request, 'This invitation link is invalid or has expired.')
+            return render(request, 'register_mentee.html')
+        
+    except InvitationToken.DoesNotExist:
+        messages.error(request, 'This invitation token was not found.')
+        return render(request, 'register_mentee.html')
+    
+    context = {
+            'token':token,
+            'mentee_email': invitation.mentee_email
+        }
+    
+
+
+
+    if request.method == 'GET':      
+        return render(request, 'register_mentee.html', context)
+    
+
+
+    else:
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        stage = request.POST.get('stage')
+
+
+        if confirm_password != password:
+            messages.error(request, 'Your passwords do not match. Please, try again.')
+            return render(request, 'register_mentee.html', context)
+        
+
+        if len(password) < 6:
+            messages.error(request, 'Your password needs to be 6 characters or more.')
+            return render(request, 'register_mentee.html', context)
+        
+
+        if email != invitation.mentee_email:
+            messages.error(request, 'The email provided does not match the invitation email.')
+            return render(request, 'register_mentee.html', context)
+        
+
+        if CustomUser.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists. Please choose a different one.')
+            return render(request, 'register_mentee.html', context)
+        
+
+
+        if CustomUser.objects.filter(email=email).exists():
+            messages.error(request, 'This email is already used.')
+            return render(request, 'register_mentee.html', context)
+        
+
+        try:
+
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                is_mentor= False,
+                mentor=invitation.mentor
+            )
+
+
+            MenteeProfile.objects.create(
+                user=user,
+                stage=stage
+            )
+
+            invitation.is_used=True
+
+            invitation.save()
+
+            messages.success(request, 'Mentee account created successfully! Please log in.')
+            return redirect('login')
+    
+
+        except Exception as e:
+            messages.error(request, 'An unexpected error occurred. Please try again later.')
+            return render(request, 'register_mentee.html', context)
+
+    

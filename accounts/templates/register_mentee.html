@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+
+{% block navbar %}{% endblock navbar %}
+
+
+
+{% block body %}
+
+<div class="min-h-screen flex items-center justify-center bg-slate-950 px-4 pt-10">
+    <div class="max-w-md w-full bg-gray-800 p-8 md:p-10 rounded-lg shadow-2xl border border-gray-700">
+        <h2 class="text-3xl font-extrabold text-white text-center mb-8">
+            Complete Your Mentee Registration
+        </h2>
+
+
+        <div class="mb-6 space-y-3">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="flex items-center p-4 mb-4 text-sm text-{{message.tags}}-800 rounded-lg bg-{{message.tags}}-50 dark:bg-slate-900 dark:text-{{message.tags}}-400" role="alert">
+                    <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                    </svg>
+                    <span class="sr-only">Info</span>
+                    <div>
+                        <span class="font-medium">{{message}}</span>
+                    </div>
+                </div>
+                {% endfor %}  
+            {% endif %}            
+        </div>
+
+
+
+        {% if token %}
+            <form method="post" action="{% url 'register_mentee' %}" class="space-y-6"> {% csrf_token %}                
+
+                <input type="hidden" name="token" value="{{ token }}">
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
+                        Email:
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        value="{{ mentee_email }}" 
+                        readonly 
+                        required
+                        class="appearance-none block w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 text-white bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-not-allowed"
+                    >
+                </div>
+
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-300 mb-2">
+                        Username:
+                    </label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="" 
+                        value="{{ username|default:'' }}" 
+                        required
+                        class="appearance-none block w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 text-white bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">
+                        Password:
+                    </label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="••••••••" 
+                        required
+                        class="appearance-none block w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 text-white bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                </div>
+
+                <div>
+                    <label for="confirm_password" class="block text-sm font-medium text-gray-300 mb-2">
+                        Confirm Password:
+                    </label>
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        placeholder="••••••••" 
+                        required
+                        class="appearance-none block w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 text-white bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                </div>
+
+                <div>
+                    <label for="stage" class="block text-sm font-medium text-gray-300 mb-2">
+                        Your Current Business Stage:
+                    </label>
+                    <select 
+                        id="stage" 
+                        name="stage" 
+                        required
+                        class="appearance-none block w-full px-4 py-3 border border-gray-700 rounded-md shadow-sm text-white bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                        <option value="" class="text-gray-400">Select your stage</option>
+                        <option value="1k-10k" {% if stage == "1k-10k" %}selected{% endif %}>1k-10k Revenue</option>
+                        <option value="10k-100k" {% if stage == "10k-100k" %}selected{% endif %}>10k-100k Revenue</option>
+                        <option value="100k+" {% if stage == "100k+" %}selected{% endif %}>100k+ Revenue</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button 
+                        type="submit" 
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out cursor-pointer"
+                    >
+                        Create Account
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <p class="text-white text-center text-lg mt-8">
+                Please use a valid invitation link to register.
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock body %}
