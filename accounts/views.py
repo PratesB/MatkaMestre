@@ -1,16 +1,18 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import CustomUser, MentorProfile, MenteeProfile, InvitationToken
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
 from django.contrib import messages
-from django.contrib.auth import authenticate, login as login_django, logout as logout_django
+from django.contrib.auth import authenticate, login as login_django, logout as logout_django, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from uuid import uuid4
 from django.utils import timezone
 from datetime import timedelta
 from django.core.mail import send_mail
 from django.conf import settings
-from django.urls import reverse
+from django.db import transaction
+from django.contrib.auth.hashers import make_password
+
 
 
 
@@ -19,8 +21,7 @@ def register(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
             if request.user.is_mentor == True:
-                return HttpResponse('dashboard_mentor')
-                # TODO: return redirect('dashboard_mentor')
+                return redirect('dashboard_mentor')
             if request.user.is_mentor == False:
                 return HttpResponse('dashboard_mentee')
                 # TODO: return redirect('dashboard_mentee')
@@ -74,8 +75,7 @@ def login(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
             if request.user.is_mentor == True:
-                return HttpResponse('dashboard_mentor')
-                # TODO: return redirect('dashboard_mentor')
+                return redirect('dashboard_mentor')
             if request.user.is_mentor == False:
                 return HttpResponse('dashboard_mentee')
                 # TODO: return redirect('dashboard_mentee')
@@ -93,8 +93,7 @@ def login(request):
             login_django(request, user)
 
             if user.is_mentor:
-                return HttpResponse('dashboard_mentor')
-                # TODO: return redirect('dashboard_mentor')
+                return redirect('dashboard_mentor')
             else:
                 return HttpResponse('dashboard_mentee')
                 # TODO: return redirect('dashboard_mentee')
@@ -107,7 +106,7 @@ def login(request):
 
 
 @login_required(redirect_field_name='home')
-@require_http_methods(['POST'])
+@require_http_methods(['GET'])
 def logout(request):
     logout_django(request)
     return redirect('home')
@@ -275,3 +274,109 @@ def register_mentee(request):
             return render(request, 'register_mentee.html', context)
 
     
+
+
+@login_required(redirect_field_name='login')
+def update_mentorprofile(request):
+    if not request.user.is_mentor:
+        messages.error(request, 'Access denied. Only mentors can updated your profile.')
+        return redirect('login')
+    
+
+    mentor_profile = MentorProfile.objects.filter(user=request.user).first()
+    if not mentor_profile:
+        mentor_profile = MentorProfile.objects.create(user=request.user)
+
+
+
+    if request.method == 'GET':
+
+        context = {
+            'user_data': request.user,
+            'profile_data': mentor_profile, 
+        }
+
+        return render(request, 'update_mentorprofile.html', context)
+    
+            
+    else:
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        current_password = request.POST.get('current_password') 
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        bio = request.POST.get('bio')
+
+
+        context = {
+            'user_data': request.user,
+            'profile_data': mentor_profile,
+            'form_data':{
+                'username': username,
+                'email': email,
+                'bio': bio,
+            }
+        }
+
+
+        if not current_password:
+            messages.error(request, 'Please, enter your current password to updated info.')
+            return render(request, 'update_mentorprofile.html', context)
+        
+
+        if not request.user.check_password(current_password):
+            messages.error(request, 'Your current password informed is incorrect.')
+            return render(request, 'update_mentorprofile.html', context)
+        
+
+        if CustomUser.objects.filter(username=username).exclude(pk=request.user.pk).exists():
+            messages.error(request, 'Username already exists. Please choose a different one.')
+            return render(request, 'update_mentorprofile.html', context)
+        
+            
+        if CustomUser.objects.filter(email=email).exclude(pk=request.user.pk).exists():
+            messages.error(request, 'This email is already used.')
+            return render(request, 'update_mentorprofile.html', context)
+        
+
+
+        if new_password or confirm_password:          
+            if confirm_password != new_password:
+                messages.error(request, 'Your passwords do not match. Please, try again.')
+                return render(request, 'update_mentorprofile.html', context)
+        
+            if len(new_password) < 6:
+                messages.error(request, 'Your password needs to be 6 characters or more.')
+                return render(request, 'update_mentorprofile.html', context)
+
+        
+        try:
+            with transaction.atomic():         
+                request.user.username = username
+                request.user.email = email
+
+                if new_password and confirm_password and new_password == confirm_password:
+                    request.user.set_password(new_password)
+                    messages.success(request, 'Your password was updated successfully!')
+
+                request.user.save()
+
+                if new_password and confirm_password and new_password == confirm_password:
+                     update_session_auth_hash(request, request.user)
+
+
+                mentor_profile.bio = bio
+                mentor_profile.save()
+
+
+                messages.success(request, 'Mentor profile updated successfully!')
+                return render(request, 'update_mentorprofile.html', context)
+
+
+        except Exception as e:
+            messages.error(request, 'An unexpected error occurred. Please try again later.')
+            return render(request, 'update_mentorprofile.html', context)
+
+                
+
+
