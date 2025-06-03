@@ -22,7 +22,7 @@ class CustomUser(AbstractUser):
 
 
 class MentorProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='mentor_profile')
     bio = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -31,7 +31,7 @@ class MentorProfile(models.Model):
 
 
 class MenteeProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='mentee_profile')
     stage = models.CharField(
         max_length=50,
         choices=[

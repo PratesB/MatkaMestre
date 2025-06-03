@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from .models import CustomUser, MentorProfile, MenteeProfile, InvitationToken
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
@@ -277,6 +277,7 @@ def register_mentee(request):
 
 
 @login_required(redirect_field_name='login')
+@require_http_methods(['GET','POST'])
 def update_mentorprofile(request):
     if not request.user.is_mentor:
         messages.error(request, 'Access denied. Only mentors can updated your profile.')
