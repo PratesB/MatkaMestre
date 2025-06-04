@@ -7,4 +7,5 @@ urlpatterns = [
     path('set_availability/', views.set_availability, name='set_availability'),
     path('availability_list/', views.availability_list, name='availability_list'),
     path('delete_availability/<int:pk>', views.delete_availability, name='delete_availability'),
+    path('edit_availability/<int:pk>', views.edit_availability, name='edit_availability'),
 ]
