@@ -154,7 +154,6 @@ def delete_availability(request, pk):
 
 
 
-
 @login_required(redirect_field_name='login')
 @require_http_methods(['GET','POST'])
 def edit_availability(request, pk):
@@ -233,3 +232,182 @@ def edit_availability(request, pk):
 
     else:
         return render(request, 'edit_availability.html', context)
+
+
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET', 'POST'])
+def create_task(request):
+    if not request.user.is_mentor:
+        messages.error(request, 'Access denied. Only mentors can create tasks.')
+        return redirect('login')
+    
+    mentor_profile = get_object_or_404(MentorProfile, user=request.user)
+    
+    my_mentees = MenteeProfile.objects.filter(user__mentor=request.user)
+
+    context = {
+        'my_mentees': my_mentees,
+    }
+
+    if request.method == 'POST':
+        mentee_email = request.POST.get('mentee_email')
+        description = request.POST.get('description')
+        due_date_str = request.POST.get('due_date')
+        
+        if not all([mentee_email, description]):
+            messages.error(request, 'Mentee and description are required.')
+            return render(request, 'create_task.html', context)
+        
+        try:
+            mentee_profile = get_object_or_404(MenteeProfile, user__email=mentee_email)
+            
+
+            if not mentor_profile: 
+                messages.error(request, 'Selected mentee is not associated with your profile.')
+                return render(request, 'create_task.html', context)
+
+
+            due_date = None
+            if due_date_str:
+                due_date = timezone.datetime.fromisoformat(due_date_str)
+                if due_date < timezone.now():
+                    messages.error(request, 'Due date cannot be in the past.')
+                    return render(request, 'create_task.html', context)
+            
+            with transaction.atomic():
+                Task.objects.create(
+                    mentor=mentor_profile,
+                    mentee=mentee_profile,
+                    description=description,
+                    due_date=due_date
+                )
+            messages.success(request, 'Task created successfully!')
+            return redirect('list_task')
+        
+        except ValueError:
+            messages.error(request, 'Invalid date format for due date.')
+            return render(request, 'create_task.html', context)
+        except Exception:
+            messages.error(request, 'An unexpected error occurred. Try again later.')
+            return render(request, 'create_task.html', context)
+
+    return render(request, 'create_task.html', context)
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET'])
+def list_task(request):
+    if not request.user.is_mentor:
+        messages.error(request, 'Access denied. Only mentors can create tasks.')
+        return redirect('login')
+    
+    
+    mentor_profile = get_object_or_404(MentorProfile, user=request.user)
+    
+    tasks = Task.objects.filter(mentor = mentor_profile).order_by('due_date')
+
+    return render(request, 'list_task.html', {'tasks':tasks})
+
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['POST'])
+def delete_task(request, pk):
+    if not request.user.is_mentor:
+        messages.error(request, 'Access denied. Only mentors can create tasks.')
+        return redirect('login')
+    
+    
+    mentor_profile = get_object_or_404(MentorProfile, user=request.user)
+    
+    task = get_object_or_404(Task, mentor=mentor_profile, pk=pk)
+    
+    try:
+        with transaction.atomic():
+            task.delete()
+        messages.success(request, 'Task deleted successfully!')
+        return redirect('list_task')
+
+    except Exception:
+        messages.error(request, 'An error occurred while deleting the task. Try again later.')
+        return redirect('list_task')
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['POST'])
+def toggle_task_status(request, pk):
+    if not request.user.is_mentor:
+        messages.error(request, 'Access denied. Only mentors can update task status.')
+        return redirect('login')
+    
+    mentor_profile = get_object_or_404(MentorProfile, user=request.user)
+    
+    task = get_object_or_404(Task, mentor=mentor_profile, pk=pk)
+    
+    try:
+        with transaction.atomic():
+            task.is_done = not task.is_done
+            task.save()
+        messages.success(request, 'Task status updated successfully!')
+        return redirect('list_task')
+    except Exception as e:
+        messages.error(request, f'An error occurred while updating task status. Please, try again later.')
+        return redirect('list_task')
+    
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET', 'POST'])
+def edit_task(request, pk):
+    if not request.user.is_mentor:
+        messages.error(request, 'Access denied. Only mentors can create tasks.')
+        return redirect('login')
+    
+    mentor_profile = get_object_or_404(MentorProfile, user=request.user)
+
+    task = get_object_or_404(Task, mentor=mentor_profile, pk=pk)
+
+    context = {
+        'task': task,
+    }
+
+    if request.method == 'POST':
+        description = request.POST.get('description')
+        due_date_str = request.POST.get('due_date')
+
+
+        
+        if not description:
+            messages.error(request, 'Description are required.')
+            return render(request, 'edit_task.html', context)
+        
+        try:
+            due_date = None
+            if due_date_str:
+                due_date = timezone.datetime.fromisoformat(due_date_str)
+                if due_date < timezone.now():
+                    messages.error(request, 'Due date cannot be in the past.')
+                    return render(request, 'edit_task.html', context)
+            
+            with transaction.atomic():
+                task.description = description
+                task.due_date = due_date
+                task.save()
+            messages.success(request, 'Task updated successfully!')
+            return redirect('list_task')
+        
+        except ValueError:
+            messages.error(request, 'Invalid date format for due date.')
+            return render(request, 'edit_task.html', context)
+        except Exception as e:
+            messages.error(request, f'An unexpected error occurred. Try again later.{e}')
+            return render(request, 'edit_task.html', context)
+
+    return render(request, 'edit_task.html', context)
+    

@@ -8,4 +8,9 @@ urlpatterns = [
     path('availability_list/', views.availability_list, name='availability_list'),
     path('delete_availability/<int:pk>', views.delete_availability, name='delete_availability'),
     path('edit_availability/<int:pk>', views.edit_availability, name='edit_availability'),
+    path('create_task/', views.create_task, name='create_task'),
+    path('list_task/', views.list_task, name='list_task'),
+    path('delete_task/<int:pk>', views.delete_task, name='delete_task'),
+    path('toggle_task_status/<int:pk>', views.toggle_task_status, name='toggle_task_status'),
+    path('edit_task/<int:pk>', views.edit_task, name='edit_task'),
 ]
