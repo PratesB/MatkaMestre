@@ -118,7 +118,6 @@ def availability_list(request):
 
 
 
-
 @login_required(redirect_field_name='login')
 @require_http_methods(['GET', 'POST'])
 def delete_availability(request, pk):
@@ -298,6 +297,7 @@ def create_task(request):
 
 
 
+
 @login_required(redirect_field_name='login')
 @require_http_methods(['GET'])
 def list_task(request):
@@ -411,3 +411,94 @@ def edit_task(request, pk):
 
     return render(request, 'edit_task.html', context)
     
+
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET', 'POST'])
+def upload_meeting_recording(request):
+    if not request.user.is_mentor:
+        messages.error(request, 'Access denied. Only mentors can create tasks.')
+        return redirect('login')
+    
+
+    mentor_profile = get_object_or_404(MentorProfile, user=request.user)
+
+
+    my_mentees = MenteeProfile.objects.filter(user__mentor=request.user)
+
+
+    context = {
+        'my_mentees': my_mentees,
+    }
+
+
+  
+    if request.method == 'POST':
+        mentee_email = request.POST.get('mentee_email')
+        title = request.POST.get('title')
+        video = request.FILES.get('video')
+        
+        if not all([mentee_email, title, video]):
+            messages.error(request, 'Mentee, title and description are required.')
+            return render(request, 'upload_meeting_recording.html', context)
+        
+        try:
+            mentee_profile = get_object_or_404(MenteeProfile, user__email=mentee_email)
+            
+
+            if not mentor_profile: 
+                messages.error(request, 'Selected mentee is not associated with your profile.')
+                return render(request, 'upload_meeting_recording.html', context)
+
+
+            with transaction.atomic():
+                MeetingRecording.objects.create(
+                    mentor=mentor_profile,
+                    mentee=mentee_profile,
+                    title=title,
+                    video=video,
+                )
+            messages.success(request, 'Meeting recording uploaded successfully!')
+            return redirect('list_meeting_recordings')
+        
+
+        except Exception as e:
+            messages.error(request, 'An unexpected error occurred during upload. Try again later.')
+            return render(request, 'upload_meeting_recording.html', context)
+
+    return render(request, 'upload_meeting_recording.html', context)
+
+
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET'])
+def list_meeting_recordings(request):    
+
+    if request.user.is_mentor:
+        mentor_profile = get_object_or_404(MentorProfile, user=request.user)        
+        recordings = MeetingRecording.objects.filter(mentor=mentor_profile).order_by('mentee', '-uploaded_at')
+
+        context = {
+        'recordings': recordings,
+        'is_mentor': request.user.is_mentor,
+        }
+        
+    elif request.user.is_mentee:
+        mentee_profile = get_object_or_404(MenteeProfile, user=request.user)
+        recordings = MeetingRecording.objects.filter(mentee=mentee_profile).order_by('mentee', '-uploaded_at')
+
+        context = {
+        'recordings': recordings,
+        'is_mentee': request.user.is_mentee,
+        }
+
+    else:
+        messages.error(request, 'Access denied. You must be a mentor or mentee to view recordings.')
+        return redirect('login') 
+
+    
+    return render(request, 'list_meeting_recordings.html', context)
