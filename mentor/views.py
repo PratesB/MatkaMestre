@@ -253,10 +253,11 @@ def create_task(request):
 
     if request.method == 'POST':
         mentee_email = request.POST.get('mentee_email')
+        title = request.POST.get('title')
         description = request.POST.get('description')
         due_date_str = request.POST.get('due_date')
         
-        if not all([mentee_email, description]):
+        if not all([mentee_email, title, description]):
             messages.error(request, 'Mentee and description are required.')
             return render(request, 'create_task.html', context)
         
@@ -280,6 +281,7 @@ def create_task(request):
                 Task.objects.create(
                     mentor=mentor_profile,
                     mentee=mentee_profile,
+                    title=title,
                     description=description,
                     due_date=due_date
                 )
@@ -379,6 +381,7 @@ def edit_task(request, pk):
 
     if request.method == 'POST':
         description = request.POST.get('description')
+        title = request.POST.get('title')
         due_date_str = request.POST.get('due_date')
 
 
@@ -396,7 +399,8 @@ def edit_task(request, pk):
                     return render(request, 'edit_task.html', context)
             
             with transaction.atomic():
-                task.description = description
+                task.title = title
+                task.description = description                
                 task.due_date = due_date
                 task.save()
             messages.success(request, 'Task updated successfully!')

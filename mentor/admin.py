@@ -5,7 +5,7 @@ from .models import MentorAvailability, Task, MeetingRecording
 
 @admin.register(MentorAvailability)
 class MentorAvailabilityAdmin(admin.ModelAdmin):
-    list_display = ['mentor_email', 'start_time', 'end_time', 'is_booked']
+    list_display = ['mentor_email', 'start_time', 'end_time', 'is_booked', 'mentee']
     readonly_fields = ('start_time', 'end_time')
     ordering = ('start_time',)
 
@@ -14,6 +14,8 @@ class MentorAvailabilityAdmin(admin.ModelAdmin):
     def mentor_email(self, obj):
         return obj.mentor.user.email
     
+    
+    
 
 
 
@@ -21,7 +23,7 @@ class MentorAvailabilityAdmin(admin.ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ['mentor_email', 'mentee_email','description', 'is_done', 'created_at', 'due_date']
+    list_display = ['mentor_email', 'mentee_email', 'title', 'description', 'is_done', 'created_at', 'due_date']
     readonly_fields = ('created_at', 'due_date')
     ordering = ('-created_at',)
 

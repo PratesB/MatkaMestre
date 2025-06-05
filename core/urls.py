@@ -27,6 +27,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('accounts/', include('accounts.urls')),
     path('mentor/', include('mentor.urls')),
+    path('mentee/', include('mentee.urls')),
 
 ]
 

@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'schema_viewer',
     'accounts',
     'mentor',
+    'mentee'
 ]
 
 

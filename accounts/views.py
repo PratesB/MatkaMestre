@@ -77,8 +77,7 @@ def login(request):
             if request.user.is_mentor == True:
                 return redirect('dashboard_mentor')
             if request.user.is_mentor == False:
-                return HttpResponse('dashboard_mentee')
-                # TODO: return redirect('dashboard_mentee')
+                return redirect('dashboard_mentee')
         return render(request, 'login.html')
     
 
@@ -95,13 +94,13 @@ def login(request):
             if user.is_mentor:
                 return redirect('dashboard_mentor')
             else:
-                return HttpResponse('dashboard_mentee')
-                # TODO: return redirect('dashboard_mentee')
+                return redirect('dashboard_mentee')
 
 
         else:
             messages.error(request, 'Email or password invalid.')
             return redirect('login')
+
 
 
 
@@ -162,8 +161,7 @@ def invite_mentee(request):
 
 
             messages.success(request, f'Invitation sent successfully to:{mentee_email}')
-            return HttpResponse(f'Invitation sent successfully to:{mentee_email}')
-            # TODO: return redirect('dashboard_mentee')
+            return redirect('dashboard_mentee')
 
         except Exception as e:
             messages.error(request, f'An error occurred while sending the invitation. Please try again later.')
@@ -274,6 +272,7 @@ def register_mentee(request):
             return render(request, 'register_mentee.html', context)
 
     
+
 
 
 @login_required(redirect_field_name='login')
