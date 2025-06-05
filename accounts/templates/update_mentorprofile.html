@@ -192,7 +192,19 @@
                 </span>
                 <div class="absolute inset-0 bg-fuchsia-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
             </button>
+
+            <!-- Delete Account Button -->
+                <a href="{% url 'delete_mentor' user.id %}" class="group relative px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-red-500/50 min-w-[200px] cursor-pointer">
+                    <span class="relative z-10 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 011-1h4a1 1 0 011 1v13M4 7h16"></path>
+                        </svg>
+                        Delete Account
+                    </span>
+                    <div class="absolute inset-0 bg-red-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                </a>
             </div>
+            
         </form>
     </div>
 </div>

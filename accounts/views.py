@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import CustomUser, MentorProfile, MenteeProfile, InvitationToken
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
@@ -20,11 +20,10 @@ from django.contrib.auth.hashers import make_password
 def register(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
-            if request.user.is_mentor == True:
+            if request.user.is_mentor:
                 return redirect('dashboard_mentor')
-            if request.user.is_mentor == False:
-                return HttpResponse('dashboard_mentee')
-                # TODO: return redirect('dashboard_mentee')
+            else:
+                return redirect('dashboard_mentee')
         return render(request, 'register.html')
     
 
@@ -56,12 +55,14 @@ def register(request):
             return redirect('register')
         
 
-        CustomUser.objects.create_user(
+        user = CustomUser.objects.create_user(
             username=username,
             email=email,
             password=password,
             is_mentor=True
         )
+
+        MentorProfile.objects.create(user=user)
 
         messages.success(request, 'Account created successfully!')
         return redirect('login')
@@ -380,3 +381,67 @@ def update_mentorprofile(request):
                 
 
 
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET','POST'])
+def delete_mentee(request, user_id):
+    if not request.user.is_mentor:
+        messages.error(request, 'You do not have permission to delete mentee.')
+        return redirect('dashboard_mentor')
+
+    user_to_delete = get_object_or_404(CustomUser, id=user_id)
+
+    if request.method == 'POST':
+        password = request.POST.get('password')
+
+
+        if not request.user.check_password(password):
+            messages.error(request, 'The password you entered is incorrect.')
+            return render(request, 'delete_mentee.html', {'user_to_delete':user_to_delete})
+
+        try:
+            with transaction.atomic():
+                user_to_delete.delete()
+            messages.success(request, 'Mentee deleted successfully!')
+            return redirect('dashboard_mentor')
+
+
+        except Exception:
+            messages.error(request, 'An error occurred while deleting the task. Try again later.')
+            return render(request, 'delete_mentee.html', {'user_to_delete': user_to_delete})
+
+
+    else:
+        return render(request, 'delete_mentee.html', {'user_to_delete':user_to_delete})
+    
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET', 'POST'])
+def delete_mentor(request, user_id):
+    if request.user.id != user_id:
+        messages.error(request, 'You do not have permission to delete this account.')
+        return redirect('dashboard_mentor')
+
+    user_to_delete = get_object_or_404(CustomUser, id=user_id)
+
+    if request.method == 'POST':
+        password = request.POST.get('password')
+
+        if not request.user.check_password(password):
+            messages.error(request, 'The password you entered is incorrect.')
+            return render(request, 'delete_mentor.html', {'user_to_delete': user_to_delete})
+
+        try:
+            with transaction.atomic():
+                user_to_delete.delete()
+            messages.success(request, 'Your mentor account has been deleted successfully!')
+            return redirect('home') 
+
+        except Exception as e:
+            messages.error(request, f'An error occurred while deleting the account.')
+            return render(request, 'delete_mentor.html', {'user_to_delete': user_to_delete})
+
+    else:
+        return render(request, 'delete_mentor.html', {'user_to_delete': user_to_delete})

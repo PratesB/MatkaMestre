@@ -19,9 +19,34 @@ def dashboard_mentor(request):
     my_mentees = MenteeProfile.objects.filter(user__mentor=request.user)
     total_mentees = my_mentees.count()
 
+    mentor_profile = request.user.mentor_profile
+
+    
+    reserved_slots = []
+    if mentor_profile:
+        reserved_slots = MentorAvailability.objects.filter(
+            mentor=mentor_profile,
+            is_booked=True,
+            start_time__gte=timezone.now()
+        ).order_by('start_time')
+
+    
+    for mentee in my_mentees:
+        has_pending_tasks = Task.objects.filter(
+            mentee=mentee,
+            is_done=False
+        ).exists()
+        
+        mentee.has_pending_tasks = has_pending_tasks
+    
+    
+
     context = {
         'my_mentees': my_mentees,
         'total_mentees': total_mentees,
+        'reserved_slots': reserved_slots,
+        
+        
     }
 
     return render(request, 'dashboard_mentor.html', context)
