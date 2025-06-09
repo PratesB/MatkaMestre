@@ -12,6 +12,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.db import transaction
 from django.contrib.auth.hashers import make_password
+from mentor.models import MentorAvailability
 
 
 
@@ -397,10 +398,30 @@ def delete_mentee(request, user_id):
 
         try:
             with transaction.atomic():
-                user_to_delete.delete()
-            messages.success(request, 'Mentee deleted successfully!')
-            return redirect('dashboard_mentor')
+                try:
+                    mentee_profile = user_to_delete.mentee_profile
 
+                    slots = MentorAvailability.objects.filter(mentee=mentee_profile, is_booked=True)
+                    slots.update(is_booked=False, mentee=None)
+
+                    mentee_profile.delete()
+
+                    if CustomUser.objects.filter(id=user_id).exists():
+                        user_to_delete.delete()
+                        
+
+                except CustomUser.mentee_profile.RelatedObjectDoesNotExist:
+                    messages.error(request, 'This user is not a mentee and can not be deleted.')
+                    return render(request, 'delete_mentee.html', {'user_to_delete': user_to_delete})
+                    
+
+
+                messages.success(request, 'Mentee deleted successfully!')
+
+                if request.user.is_mentor:
+                    return redirect('dashboard_mentor')
+                else:
+                    return redirect('home')
 
             
         except Exception as e:
