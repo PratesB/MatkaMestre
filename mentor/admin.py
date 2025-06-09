@@ -49,10 +49,10 @@ class MeetingRecordingAdmin(admin.ModelAdmin):
     
     @admin.display(description='Mentor Email', empty_value='-')
     def mentor_email(self, obj):
-        return obj.mentor.user.email
+        return obj.mentor.user.email if obj.mentor and obj.mentor.user else '-'
     
     
     
     @admin.display(description='Mentee Email', empty_value='-')
     def mentee_email(self, obj):
-        return obj.mentee.user.email
+        return obj.mentee.user.email if obj.mentee and obj.mentee.user else '-'
