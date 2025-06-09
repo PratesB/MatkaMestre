@@ -24,6 +24,7 @@ class CustomUser(AbstractUser):
 class MentorProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='mentor_profile')
     bio = models.TextField(blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profiles/mentor/', null=True, blank=True)
 
     def __str__(self):
         return f'Mentor profile of {self.user.email}'
@@ -41,7 +42,8 @@ class MenteeProfile(models.Model):
         ]
     )
 
-
+    
+    profile_picture = models.ImageField(upload_to='profiles/mentee/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

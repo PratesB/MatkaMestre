@@ -13,6 +13,9 @@ from django.conf import settings
 from django.db import transaction
 from django.contrib.auth.hashers import make_password
 from mentor.models import MentorAvailability
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -280,7 +283,7 @@ def register_mentee(request):
 @require_http_methods(['GET','POST'])
 def update_mentorprofile(request):
     if not request.user.is_mentor:
-        messages.error(request, 'Access denied. Only mentors can updated your profile.')
+        messages.error(request, 'Access denied. Only mentors can update their profile.')
         return redirect('login')
     
 
@@ -307,6 +310,8 @@ def update_mentorprofile(request):
         new_password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')
         bio = request.POST.get('bio')
+        profile_picture = request.FILES.get('profile_picture')
+        
 
 
         context = {
@@ -316,12 +321,13 @@ def update_mentorprofile(request):
                 'username': username,
                 'email': email,
                 'bio': bio,
+                
             }
         }
 
 
         if not current_password:
-            messages.error(request, 'Please, enter your current password to updated info.')
+            messages.error(request, 'Please enter your current password to update your profile.')
             return render(request, 'update_mentorprofile.html', context)
         
 
@@ -347,7 +353,20 @@ def update_mentorprofile(request):
                 return render(request, 'update_mentorprofile.html', context)
         
             if len(new_password) < 6:
-                messages.error(request, 'Your password needs to be 6 characters or more.')
+                messages.error(request, 'Password must be at least 6 characters long.')
+                return render(request, 'update_mentorprofile.html', context)
+            
+        if profile_picture:
+            if profile_picture.size > 5 * 1024 * 1024:
+                logger.warning(f"Profile picture too large for user {request.user.email}: {profile_picture.size} bytes")
+                messages.error(request, 'Profile picture must be less than 5MB.')
+                return render(request, 'update_mentorprofile.html', context)
+            
+            valid_extensions = ['.jpg', '.png', '.jpeg', '.gif']
+            file_extension = profile_picture.name.lower()
+            if not any(file_extension.endswith(ext) for ext in valid_extensions):
+                logger.warning(f"Invalid image extension for user {request.user.email}: {file_extension}")
+                messages.error(request, 'Profile picture must be a JPG, JPEG, PNG, or GIF file.')
                 return render(request, 'update_mentorprofile.html', context)
 
         
@@ -358,23 +377,27 @@ def update_mentorprofile(request):
 
                 if new_password and confirm_password and new_password == confirm_password:
                     request.user.set_password(new_password)
-                    messages.success(request, 'Your password was updated successfully!')
-
+                    update_session_auth_hash(request, request.user)
+                    messages.success(request, 'Password updated successfully!')
                 request.user.save()
+                logger.info(f"Updated CustomUser for {request.user.email}")
 
-                if new_password and confirm_password and new_password == confirm_password:
-                     update_session_auth_hash(request, request.user)
-
-
+  
                 mentor_profile.bio = bio
-                mentor_profile.save()
 
+                if profile_picture:
+                    logger.info(f"Processing profile picture upload for {request.user.email}")
+                    mentor_profile.profile_picture = profile_picture
+
+                mentor_profile.save()
+                logger.info(f"Updated MentorProfile for {request.user.email}")
 
                 messages.success(request, 'Mentor profile updated successfully!')
-                return render(request, 'update_mentorprofile.html', context)
+                return redirect('dashboard_mentor')
 
 
         except Exception as e:
+            logger.error(f"Error updating profile for {request.user.email}: {str(e)}")
             messages.error(request, 'An unexpected error occurred. Please try again later.')
             return render(request, 'update_mentorprofile.html', context)
 
@@ -499,6 +522,7 @@ def update_menteeprofile(request):
         new_password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')
         stage = request.POST.get('stage')
+        profile_picture = request.FILES.get('profile_picture')
 
 
         context = {
@@ -541,6 +565,19 @@ def update_menteeprofile(request):
             if len(new_password) < 6:
                 messages.error(request, 'Your password needs to be 6 characters or more.')
                 return render(request, 'update_mentorprofile.html', context)
+        
+        if profile_picture:
+            if profile_picture.size > 5 * 1024 * 1024:
+                logger.warning(f"Profile picture too large for user {request.user.email}: {profile_picture.size} bytes")
+                messages.error(request, 'Profile picture must be less than 5MB.')
+                return render(request, 'update_mentorprofile.html', context)
+            
+            valid_extensions = ['.jpg', '.png', '.jpeg', '.gif']
+            file_extension = profile_picture.name.lower()
+            if not any(file_extension.endswith(ext) for ext in valid_extensions):
+                logger.warning(f"Invalid image extension for user {request.user.email}: {file_extension}")
+                messages.error(request, 'Profile picture must be a JPG, JPEG, PNG, or GIF file.')
+                return render(request, 'update_mentorprofile.html', context)
 
         
         try:
@@ -551,14 +588,16 @@ def update_menteeprofile(request):
 
                 if new_password and confirm_password and new_password == confirm_password:
                     request.user.set_password(new_password)
+                    update_session_auth_hash(request, request.user)
                     messages.success(request, 'Your password was updated successfully!')
 
                 request.user.save()
 
-                if new_password and confirm_password and new_password == confirm_password:
-                     update_session_auth_hash(request, request.user)
-
                 mentee_profile.stage = stage
+                if profile_picture:
+                    logger.info(f"Processing profile picture upload for {request.user.email}")
+                    mentee_profile.profile_picture = profile_picture
+                    
                 mentee_profile.save()
 
                 messages.success(request, 'Mentee profile updated successfully!')
