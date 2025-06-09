@@ -59,6 +59,8 @@ def dashboard_mentee(request):
     # Meeting recordings
     recordings = MeetingRecording.objects.filter(mentee=mentee_profile).order_by('-uploaded_at')
 
+    
+
 
     context = {
         'tasks': tasks,
@@ -68,7 +70,8 @@ def dashboard_mentee(request):
         'recordings': recordings,
         'is_mentor': False,
         'reserved_slots': reserved_slots,
-        'mentor_profile': mentor_profile
+        'mentor_profile': mentor_profile,
+        'mentee_profile': mentee_profile,
     }
     
     
