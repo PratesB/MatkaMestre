@@ -45,6 +45,7 @@ def dashboard_mentor(request):
         'my_mentees': my_mentees,
         'total_mentees': total_mentees,
         'reserved_slots': reserved_slots,
+        'mentor_profile': mentor_profile,
         
         
     }
