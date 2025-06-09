@@ -42,7 +42,7 @@ class TaskAdmin(admin.ModelAdmin):
 
 @admin.register(MeetingRecording)
 class MeetingRecordingAdmin(admin.ModelAdmin):
-    list_display = ['mentor_email', 'mentee_email','title', 'video', 'uploaded_at']
+    list_display = ['mentor_email','title', 'mentee_email', 'video', 'uploaded_at']
     readonly_fields = ('uploaded_at',)
     ordering = ('-uploaded_at',)
 
@@ -50,6 +50,7 @@ class MeetingRecordingAdmin(admin.ModelAdmin):
     @admin.display(description='Mentor Email', empty_value='-')
     def mentor_email(self, obj):
         return obj.mentor.user.email
+    
     
     
     @admin.display(description='Mentee Email', empty_value='-')

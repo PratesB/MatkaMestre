@@ -15,7 +15,6 @@ from django.contrib.auth.hashers import make_password
 
 
 
-
 @require_http_methods(['GET','POST'])
 def register(request):
     if request.method == 'GET':
@@ -385,9 +384,6 @@ def update_mentorprofile(request):
 @login_required(redirect_field_name='login')
 @require_http_methods(['GET','POST'])
 def delete_mentee(request, user_id):
-    if not request.user.is_mentor:
-        messages.error(request, 'You do not have permission to delete mentee.')
-        return redirect('dashboard_mentor')
 
     user_to_delete = get_object_or_404(CustomUser, id=user_id)
 
@@ -406,8 +402,9 @@ def delete_mentee(request, user_id):
             return redirect('dashboard_mentor')
 
 
-        except Exception:
-            messages.error(request, 'An error occurred while deleting the task. Try again later.')
+            
+        except Exception as e:
+            messages.error(request, 'An error occurred while deleting the mentee. Try again later.')
             return render(request, 'delete_mentee.html', {'user_to_delete': user_to_delete})
 
 
@@ -445,3 +442,108 @@ def delete_mentor(request, user_id):
 
     else:
         return render(request, 'delete_mentor.html', {'user_to_delete': user_to_delete})
+
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET','POST'])
+def update_menteeprofile(request):
+    if request.user.is_mentor:
+        messages.error(request, 'Access denied. Only mentees can updated your profile.')
+        return redirect('login')
+    
+
+    mentee_profile = MenteeProfile.objects.filter(user=request.user).first()
+
+    if not mentee_profile:
+        mentee_profile = MentorProfile.objects.create(user=request.user)
+
+
+
+    if request.method == 'GET':
+
+        context = {
+            'user_data': request.user,
+            'mentee_profile': mentee_profile, 
+        }
+
+        return render(request, 'update_menteeprofile.html', context)
+    
+            
+    else:
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        current_password = request.POST.get('current_password') 
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        stage = request.POST.get('stage')
+
+
+        context = {
+            'user_data': request.user,
+            'mentee_profile': mentee_profile,
+            'form_data':{
+                'username': username,
+                'email': email,
+                'stage': stage,
+            }
+        }
+
+
+        if not current_password:
+            messages.error(request, 'Please, enter your current password to updated info.')
+            return render(request, 'update_mentorprofile.html', context)
+        
+
+        if not request.user.check_password(current_password):
+            messages.error(request, 'Your current password informed is incorrect.')
+            return render(request, 'update_mentorprofile.html', context)
+        
+
+        if CustomUser.objects.filter(username=username).exclude(pk=request.user.pk).exists():
+            messages.error(request, 'Username already exists. Please choose a different one.')
+            return render(request, 'update_mentorprofile.html', context)
+        
+            
+        if CustomUser.objects.filter(email=email).exclude(pk=request.user.pk).exists():
+            messages.error(request, 'This email is already used.')
+            return render(request, 'update_mentorprofile.html', context)
+        
+
+
+        if new_password or confirm_password:          
+            if confirm_password != new_password:
+                messages.error(request, 'Your passwords do not match. Please, try again.')
+                return render(request, 'update_mentorprofile.html', context)
+        
+            if len(new_password) < 6:
+                messages.error(request, 'Your password needs to be 6 characters or more.')
+                return render(request, 'update_mentorprofile.html', context)
+
+        
+        try:
+            with transaction.atomic():         
+                request.user.username = username
+                request.user.email = email
+                
+
+                if new_password and confirm_password and new_password == confirm_password:
+                    request.user.set_password(new_password)
+                    messages.success(request, 'Your password was updated successfully!')
+
+                request.user.save()
+
+                if new_password and confirm_password and new_password == confirm_password:
+                     update_session_auth_hash(request, request.user)
+
+                mentee_profile.stage = stage
+                mentee_profile.save()
+
+                messages.success(request, 'Mentee profile updated successfully!')
+                return render(request, 'update_menteeprofile.html', context)
+
+
+        except Exception as e:
+            messages.error(request, 'An unexpected error occurred. Please try again later.')
+            return render(request, 'update_menteeprofile.html', context)

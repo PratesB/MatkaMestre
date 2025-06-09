@@ -125,11 +125,15 @@ def book_slot(request, slot_id):
         return redirect('dashboard_mentee')
     
 
-    slot = get_object_or_404(MentorAvailability, id=slot_id, mentor = mentor_profile, is_booked = False, start_time__gte=timezone.now())
+    slot = get_object_or_404(
+        MentorAvailability, 
+        id=slot_id, 
+        mentor = mentor_profile, 
+        is_booked = False, 
+        start_time__gte=timezone.now()
+    )
 
     
-
-
     slot.is_booked = True
     slot.mentee = mentee_profile
     slot.save()
