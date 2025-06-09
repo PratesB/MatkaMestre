@@ -162,7 +162,7 @@ def invite_mentee(request):
 
 
             messages.success(request, f'Invitation sent successfully to:{mentee_email}')
-            return redirect('dashboard_mentee')
+            return redirect('dashboard_mentor')
 
         except Exception as e:
             messages.error(request, f'An error occurred while sending the invitation. Please try again later.')
