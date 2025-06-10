@@ -521,6 +521,7 @@ def update_menteeprofile(request):
         current_password = request.POST.get('current_password') 
         new_password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')
+        bio = request.POST.get('bio')
         stage = request.POST.get('stage')
         profile_picture = request.FILES.get('profile_picture')
 
@@ -532,6 +533,7 @@ def update_menteeprofile(request):
                 'username': username,
                 'email': email,
                 'stage': stage,
+                'bio': bio,
             }
         }
 
@@ -593,6 +595,7 @@ def update_menteeprofile(request):
 
                 request.user.save()
 
+                mentee_profile.bio = bio
                 mentee_profile.stage = stage
                 if profile_picture:
                     logger.info(f"Processing profile picture upload for {request.user.email}")

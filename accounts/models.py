@@ -44,6 +44,7 @@ class MenteeProfile(models.Model):
 
     
     profile_picture = models.ImageField(upload_to='profiles/mentee/', null=True, blank=True)
+    bio = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
