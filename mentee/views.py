@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
-from accounts.models import MenteeProfile, CustomUser
+from accounts.models import MenteeProfile, CustomUser, MentorProfile
 from mentor.models import Task, MentorAvailability, MeetingRecording
 from django.utils import timezone
 
@@ -145,3 +145,62 @@ def book_slot(request, slot_id):
     return redirect('dashboard_mentee')
 
 
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET'])
+def mentee_profile(request, mentee_id):
+
+    # Get mentee
+    mentee_profile = get_object_or_404(MenteeProfile, id=mentee_id)
+    if not mentee_profile:
+        messages.error(request, 'Mentee not found.')
+        return redirect('login')
+    
+
+    if mentee_profile.user.mentor != request.user:
+        messages.error(request, 'Access denied. You can only view profiles of your assigned mentees.')
+        return redirect('dashboard_mentor')
+
+    
+
+    # Tasks
+    tasks = Task.objects.filter(mentee = mentee_profile).order_by('is_done', 'due_date', '-created_at')
+
+
+    # Meeting recordings
+    recordings = MeetingRecording.objects.filter(mentee=mentee_profile).order_by('-uploaded_at')
+
+
+    # Get Mentor
+    try:
+        mentor = request.user.mentor_profile
+    except MentorProfile.DoesNotExist:
+        messages.error(request, "Your mentor profile could not be found. Please contact support.")
+        return redirect('dashboard_mentor')
+
+
+    # Reserved Slots
+    reserved_slots = MentorAvailability.objects.filter(
+        mentee=mentee_profile,
+        mentor=mentor,
+        is_booked=True,
+        start_time__gte=timezone.now()
+        ).order_by('start_time')
+
+
+    
+
+    context = {
+        'tasks': tasks,
+        'recordings': recordings,
+        'is_mentor': False,
+        'reserved_slots': reserved_slots,
+        'mentee_profile': mentee_profile,
+        'mentor': mentor,
+
+    }
+    
+
+    return render(request, 'mentee_profile.html', context)

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block navbar %}   
+        <nav class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-lg border-b border-slate-700/50 py-4">
+            <div class="container mx-auto px-4 flex justify-between items-center">
+                
+                <a href="{% url 'home' %}" class="flex items-center space-x-3">
+                    <img class="h-10 w-auto rounded-full" src="{% static 'img/logo.png' %}" alt="MatkaMestre Logo">
+                    <span class="text-2xl font-bold text-white tracking-tight">MatkaMestre</span>
+                </a>
+
+                <nav class="hidden lg:flex space-x-8">
+                    <a href="{% url 'set_availability' %}" class="text-slate-300 hover:text-green-400 font-medium transition-colors duration-200">Set Availability</a>
+                    <a href="{% url 'availability_list' %}" class="text-slate-300 hover:text-fuchsia-400 font-medium transition-colors duration-200">Availability List</a>
+                    <a href="{% url 'create_task' %}" class="text-slate-300 hover:text-yellow-400 font-medium transition-colors duration-200">Create Tasks</a>
+                    <a href="{% url 'list_task' %}" class="text-slate-300 hover:text-blue-500 font-medium transition-colors duration-200">Task List</a>
+                    <a href="{% url 'upload_meeting_recording' %}" class="text-slate-300 hover:text-cyan-500 font-medium transition-colors duration-200">Upload meeting recording</a>
+                </nav>
+
+                <div class="hidden lg:flex space-x-3">
+                    <a href="{% url 'update_menteeprofile' %}" class="px-2 py-1 rounded-lg bg-slate-500 text-white font-semibold hover:bg-slate-700 transition-colors duration-200 shadow-lg cursor-pointer">
+                        My Profile
+                    </a>
+                    <a href="{% url 'logout' %}" class="px-2 py-1 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-700 transition-colors duration-200 shadow-lg cursor-pointer">
+                        Logout
+                    </a>
+                </div>              
+
+            </div>
+        </nav>
+{% endblock navbar %}
+
+
+
+{% block body %}
+    <div class="min-h-screen bg-gray-900">
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Profile Card -->
+                <div class="lg:col-span-1">
+                    <div class="bg-gray-800 rounded-lg shadow-xl p-6">
+                        <div class="text-center">
+                            <img src="{{mentee_profile.profile_picture.url}}" 
+                                 alt="Profile Picture" 
+                                 class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-600">
+                            <h2 class="text-2xl font-bold text-white mb-2">{{mentee_profile.user.username}}</h2>
+                            <p class="text-gray-400 mb-4">{{mentee_profile.user.email}}</p>
+                            
+                            <!-- Business Stage -->
+                            <div class="bg-gray-700 rounded-lg p-4 mb-6">
+                                <h3 class="text-sm font-semibold text-gray-300 mb-2">Current Business Stage</h3>
+                                <span class="inline-block bg-blue-600 text-white px-3 py-1 rounded-full text-sm">{{mentee_profile.stage}}</span>
+                            </div>
+                            
+                            <!-- Mentor Info -->
+                            <div class="bg-gray-700 rounded-lg p-4">
+                                <h3 class="text-sm font-semibold text-gray-300 mb-3">Mentor Information</h3>
+                                <div class="flex items-center justify-between">
+                                    <div class="text-left">
+                                        <p class="text-white font-medium">{{request.user.username}}</p>
+                                        <p class="text-gray-400 text-sm">{{request.user.email}}</p>                                    
+                                    </div>
+
+                                    <div class="flex-shrink-0">
+                                    <img src="{{mentor.profile_picture.url}}" 
+                                    alt="Mentor Profile Picture" 
+                                    class="w-12 h-12 rounded-full border-2 border-gray-500 object-cover">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="lg:col-span-2 space-y-8">
+                    
+                    <!-- Professional Bio -->
+                    <div class="bg-gray-800 rounded-lg shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-white mb-4">Professional Bio</h3>
+                        <p class="text-gray-300 leading-relaxed">
+                            {{mentee_profile.bio}}
+                        </p>
+                    </div>
+
+                    <!-- Scheduled Meetings -->
+                    <div class="bg-gray-800 rounded-lg shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-white mb-4">Scheduled Meetings with Mentor</h3>
+                        <div class="space-y-4">
+                            <div class="bg-gray-700 rounded-lg p-4 border-l-4 border-green-500">
+
+                                {% if reserved_slots %}
+
+                                    <div class="flex justify-between items-start">
+                                        <div>                                   
+                                            {% for reserved in reserved_slots %}
+                                                <h4 class="font-semibold text-white">Growth Strategy Session</h4>
+                                                <p class="text-gray-400 text-sm mt-1">Discuss scaling strategies and market expansion</p>
+                                                <p class="text-green-400 text-sm mt-2">📅 {{reserved.start_time}}</p>
+        
+                                            {% endfor %}
+                                        </div>
+                                        <span class="bg-green-600 text-white px-2 py-1 rounded text-xs">Upcoming</span>
+                                    </div>
+
+                                {% else %}
+                                    <div class="flex justify-between items-start">
+                                        <div>                                   
+                                            <p class="text-red-400 text-lg mt-2">📅 No meeting upcoming</p>
+                                        </div>    
+                                    </div>       
+              
+                                {% endif %}  
+
+                            </div>                             
+                        </div>
+                    </div>
+
+                    <!-- Tasks and Status -->
+                    <div class="bg-gray-800 rounded-lg shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-white mb-4">Tasks & Status</h3>
+                        <div class="space-y-4">
+
+                            {% if tasks %}
+
+                                {% for task in tasks %}
+                                    <div class="bg-gray-700 rounded-lg p-4 border-l-4 border-green-500">
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex-1">
+                                                <h4 class="font-semibold text-white">{{task.title}}</h4>
+                                                <p class="text-gray-400 text-sm mt-1">{{task.description}}</p>
+                                                <p class="text-gray-400 text-sm mt-2">Due date: {{task.due_date}}</p>
+                                            </div>
+                                            
+                                            {% if task.is_done == True %}
+                                            <span class="bg-green-600 text-white px-3 py-1 rounded-full text-sm ml-4">Completed</span>
+
+                                            {% else %}
+                                            <span class="bg-red-600 text-white px-3 py-1 rounded-full text-sm ml-4">Pending</span>
+                                                
+                                            {% endif %}
+                                                
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                {% endfor %}
+                                    
+                                
+                            {% endif %}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+{% endblock body %}
