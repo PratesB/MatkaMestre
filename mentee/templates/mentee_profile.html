@@ -15,10 +15,12 @@
                         <div class="text-center">
                             
                             {% if mentee_profile.profile_picture %}
-                            <img src="{{mentee_profile.profile_picture.url}}" alt="Mentee Profile Picture" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-600">    
+                                <img src="{{mentee_profile.profile_picture.url}}" alt="Mentee Profile Picture" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-600">    
                             
                             {% else %}
-                            <img src="" alt="Mentee Profile Picture" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-600">
+                                <svg class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
 
                             {% endif %}
                                 
@@ -42,9 +44,13 @@
                                     </div>
 
                                     <div class="flex-shrink-0">
-                                    <img src="{{mentor.profile_picture.url}}" 
-                                    alt="Mentor Profile Picture" 
-                                    class="w-12 h-12 rounded-full border-2 border-gray-500 object-cover">
+                                    {% if mentor_profile.profile_picture %}
+                                        <img src="{{ mentor_profile.profile_picture.url }}" alt="Profile Picture" class="w-16 h-16 rounded-full object-cover">
+                                    {% else %}
+                                        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    {% endif %}
                                     </div>
                                 </div>
                             </div>
