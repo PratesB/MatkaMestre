@@ -15,4 +15,5 @@ urlpatterns = [
     path('edit_task/<int:pk>', views.edit_task, name='edit_task'),
     path('upload_meeting_recording/', views.upload_meeting_recording, name='upload_meeting_recording'),
     path('list_meeting_recordings/', views.list_meeting_recordings, name='list_meeting_recordings'),
+    path('mentor_profile/', views.mentor_profile, name='mentor_profile'),
 ]

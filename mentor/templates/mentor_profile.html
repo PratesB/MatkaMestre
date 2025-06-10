@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+
+{% block body %}
+    <div class="min-h-screen bg-gray-900">
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Profile Card -->
+                <div class="lg:col-span-1">
+                    <div class="bg-gray-800 rounded-lg shadow-xl p-6">
+                        <div class="text-center">
+                            <img src="{{mentor_profile.profile_picture.url}}" 
+                                 alt="Profile Picture" 
+                                 class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-600">
+                            <h2 class="text-2xl font-bold text-white mb-2">{{mentor_user.username}}</h2>
+                            <p class="text-gray-400 mb-4">{{mentor_user.email}}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="lg:col-span-2 space-y-8">  
+                    <!-- Professional Bio -->
+                    <div class="bg-gray-800 rounded-lg shadow-xl p-6">
+                        <h3 class="text-xl font-bold text-white mb-4">Professional Bio</h3>
+                        <p class="text-gray-300 leading-relaxed">
+                            {{mentor_profile.bio}}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+{% endblock body %}

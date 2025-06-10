@@ -532,3 +532,29 @@ def list_meeting_recordings(request):
 
     
     return render(request, 'list_meeting_recordings.html', context)
+
+
+
+@login_required(redirect_field_name='login')
+@require_http_methods(['GET'])
+def mentor_profile(request):
+
+
+
+    # get mentor profile directly
+    mentor_profile = request.user.mentor.mentor_profile
+
+    # get mentor user form CustomUser
+    mentor_user = mentor_profile.user
+
+    
+
+    context = {
+
+        'mentor_user': mentor_user,
+        'mentor_profile': mentor_profile
+
+    }
+    
+
+    return render(request, 'mentor_profile.html', context)
